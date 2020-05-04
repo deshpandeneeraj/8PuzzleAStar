@@ -5,6 +5,17 @@
  GitHub Link : https://github.com/deshpandeneeraj/8PuzzleAStar
 """
 
+def solvable(state):
+    inversions = 0
+    for i in range(9):
+        for j in range(i+1,9):
+            if state[j]<state[i] and state[j] != 0 and state[i] != 0:
+                inversions += 1
+    print(f"Inversions = {inversions}")
+    if inversions % 2 == 1:
+        return False
+    else:
+        return True
 
 def manhattan_dis(state):
     if len(state) == 9:
@@ -29,24 +40,28 @@ def manhattan_dis(state):
                 elif value > actual:
                     actual += 1
                     distance += 1
-            # print(f"Value = {value} , Distance = {distance}")
+            #print(f"Value = {value} , Distance = {distance}")
         return distance
     else:
         return False
 
 class Node():
 
-    def __init__(self, depth = 0, state = None):
+    def __init__(self, parent = None, depth = 0, state = None):
         self.depth = depth
         self.state = state
         self.cost = manhattan_dis(state)
         self.priority = self.cost + self.depth
+        self.parent = parent
 
     def get_priority(self):
         return self.priority
 
     def get_state(self):
         return self.state
+
+    def get_parent(self):
+        return self.parent
 
     # index = 0, {1, 3}
     # index = 1, {0, 2, 4};
@@ -95,39 +110,39 @@ class Node():
 
 
 if __name__ ==  "__main__":
-    start = [1, 2, 3, 4, 5, 0, 7, 8, 6]
+    start = [1,2,3,4,5,6,0,7,8]
     target = [1, 2, 3, 4, 5, 6, 7, 8, 0]
     current_depth = 0
+    if solvable(start):
+        parent = Node(state=start, depth=current_depth)
+        result = False
+        while not result:
+            neighbours = parent.generate_neighbours()
+            children = []
+            current_depth += 1
+            for i in neighbours:
+                children.append(Node(state=parent.swap(i), parent = parent.get_state(), depth=current_depth))
+            for i in children:
+                if i.get_state() == target:
+                    result = True
+                    cost = i.get_priority()
+                    final = i.get_state()
+            min_cost = 999
+            for i in children:
+                if i.get_priority() < min_cost:
+                    state = i.get_state()
+                    min_cost = i.get_priority()
+            parent_state = parent.get_state()
+            parent = Node(state = state, depth=current_depth, parent = parent_state)
+            print("Current depth = ", current_depth)
+        print("Start State:")
+        for i in range(0,9,3):
+            print(start[i], start[i+1], start[i+2])
 
-    parent = Node(state=start, depth=current_depth)
-    neighbours = parent.generate_neighbours()
-    children = []
-    result = False
-    while not result:
-        current_depth += 1
-        for i in neighbours:
-            children.append(Node(state=parent.swap(i), depth=current_depth))
-        print(children)
-        for i in children:
-            if i.get_state() == target:
-                result = True
-                cost = i.get_priority()
-                final = i.get_state()
-        min_cost = 999
-        for i in children:
-            if i.get_priority() < min_cost:
-                state = i.get_state()
-                min = i.get_priority()
-        parent = Node(state = state, depth=current_depth)
-        print("Current depth = ", current_depth)
-        children = []
-    print("Start State:")
-    for i in range(0,9,3):
-        print(start[i], start[i+1], start[i+2])
+        print("\nTarget State:")
+        for i in range(0, 9, 3):
+            print(target[i], target[i + 1], target[i + 2])
 
-    print("\nTarget State:")
-    for i in range(0, 9, 3):
-        print(target[i], target[i + 1], target[i + 2])
-
-    print(f"\nTotal Number of Moves : {cost}")
-
+        print(f"\nTotal Number of Moves : {cost}")
+    else:
+        print("STATE IS UNSOLVABLE")
